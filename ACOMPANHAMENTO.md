@@ -27,17 +27,22 @@
 
 ---
 
-## Encontro 1 - AAAA-MM-DD
+## Encontro 1 - 2026-08-24
 
 **Etapa:** 1 - Ingestão heterogênea, metadados e indexação vetorial
 
-### Relato individual - [Nome do Integrante 1]
+### Relato individual - Luiz Carlos Gomes da Silva Júnior
 
-<!-- Escreva você mesmo, em primeira pessoa. O que implementou, que decisão tomou e por quê, onde travou. -->
+Hoje comecei organizando o repositório do desafio e entendendo melhor o que precisa ser feito na Etapa 1. Analisei os arquivos disponíveis e as diferenças entre os formatos CSV, JSON, JSONL, Markdown, PDF e TXT.
+
+Também revisei como deve funcionar o chunking de cada tipo de arquivo e os metadados obrigatórios que vão acompanhar os chunks. A decisão inicial foi manter o tratamento separado por tipo de arquivo, já que cada formato tem uma estrutura diferente.
+
+Usei o ChatGPT para entender melhor o enunciado e organizar o que precisava ser feito primeiro. Hoje ainda não consegui avançar para a implementação e os testes do código, então essa parte ficou pendente para continuar.
 
 ### Relato individual - [Nome do Integrante 2]
 
 <!-- Escreva você mesmo, em primeira pessoa. O que implementou, que decisão tomou e por quê, onde travou. -->
+
 
 ### Resumo do dia (escrito em conjunto)
 
