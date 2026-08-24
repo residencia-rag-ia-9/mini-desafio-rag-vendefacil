@@ -1,29 +1,38 @@
 # Acompanhamento - Mini Desafio RAG VendeFácil
 
-**Integrante 1:** Nome Completo - [@usuario-github](https://github.com/usuario-github)
-**Integrante 2:** Nome Completo - [@usuario-github](https://github.com/usuario-github)
+**Integrante 1:** Luiz Carlos Gomes da Silva Junior - @luizcarlos001
+**Integrante 2:** Silvio Lima - @silviolima07
 
-**Repositório:** `rag-vendefacil-<sobrenome1>-<sobrenome2>`
+**Repositório:** `rag-vendefacil-residencia-ia-rag-9`
 
----
+## Encontro 0 - 2026-08-24
 
-## Como preencher
+**Etapa:** 0 - Criação de organização, repositorio e fork do template do mini-desafio
 
-- Um bloco por encontro, em **ordem cronológica** - o encontro mais recente vai no **fim** do arquivo.
-- O relato individual é escrito **pelo próprio integrante**, em primeira pessoa. Não escreva pelo colega.
-- Escrever entre **17:30 e 17:40**. `commit` + `push` até as **18:00**, mesmo que o dia não tenha fechado.
-- Mensagem de commit: `acompanhamento: AAAA-MM-DD`
+### Relato individual - [Nome do Integrante 1]
 
-**Um relato útil responde:** o que eu implementei, qual decisão técnica eu tomei e por quê, onde travei, e como (ou se) resolvi.
+### Relato individual - Silvio Lima
 
-<details>
-<summary>Exemplo de relato individual bom × ruim</summary>
+ Fomos divididos em duplas e fiz o processo de criação de organização, fiz criação do repositório e fiz um fork do repósitorio do professor.
 
-❌ *"Trabalhei na parte de ingestão junto com meu colega. Avançamos bastante e conseguimos carregar os arquivos."*
+### Resumo do dia (escrito em conjunto)
 
-✅ *"Implementei os loaders de CSV e JSONL em `src/ingest.py`. Decidi serializar cada linha do `customers.csv` como frase em linguagem natural em vez de manter o formato separado por vírgula, porque nos primeiros testes de similaridade os chunks CSV crus não recuperavam nada - o embedding não separa campo de valor. Travei ~40 min no `tickets.jsonl`: o `state` estava indo para o texto do chunk mas não para os metadados, então o filtro voltava vazio. Resolvi movendo a extração para antes da criação do `Document`. Usei o Claude para gerar o esqueleto do parser de JSONL; ajustei o schema de metadados na mão."*
+Preparação do ambiente.
+- criação de organização
+- criação de repositório -rag-ia-puc-9
+- fork do repositório do professor: vendefacil
 
-</details>
+**Ficou pendente:**
+-
+
+**Bloqueios em aberto:**
+-
+
+**Próximo passo (início do encontro 2):**
+-
+
+**Uso de assistentes de IA:**
+-
 
 ---
 
