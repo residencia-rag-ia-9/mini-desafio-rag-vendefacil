@@ -39,7 +39,7 @@ Preparação do ambiente.
 
 
 
-## Encontro 1 - YYYY-MM-DD
+## Encontro 1 - 2026-08-26
 
 **Etapa:** 1 - Ingestão heterogênea, metadados e indexação vetorial
 
@@ -47,14 +47,24 @@ Preparação do ambiente.
 
 <!-- Escreva você mesmo, em primeira pessoa. O que implementou, que decisão tomou e por quê, onde travou. -->
 
-### Relato individual - [Nome do Integrante 2]
+### Relato individual - Silvio Lima
 
-<!-- Escreva você mesmo, em primeira pessoa. O que implementou, que decisão tomou e por quê, onde travou. -->
+Fiz a leitura dos dados, no inicio estava fazendo apenas de semi_structured. Depois Luiz dividiu por tipo e fiquei com md, txt, pdf, json e jsonl.
+Acabei pegando os diretórios de unstructured e structured. Fiz a compressão dos diretórios e no colab fiz a extração.
+Mas como o trabalho pediu para criar apenas uma função para ler todos os formatos de dados e aplicar estrategia adaptiva para cada tipo.
+Fiz isso e para cada tipo uma estrategia diferente foi usada.
+Foram gerados os indexes FAISS, os indexes foram comprimidos em podem ser salvos localmente.
+Fiz um teste recuperação com 3 perguntas sobre os documentos lidos, recuperando corretamente, 5 chunks mais semelhantes.
+Fiz um teste usando a informação de ano-mes que existe como metadado em cada chunk, resultado correto.
+Em todos os 3 testes feitos, as 5 respostas foram corretas.
+
 
 ### Resumo do dia (escrito em conjunto)
 
 **Entregamos hoje:**
--
+- Etapa 1 finalizada.
+- arquivos lidos, estrategias aplicadas por tipo, indices FAISS criados, teste de recuperação e busca feitos com resultado ok.
+- gerado notebook com os codigos aplicados.
 
 **Ficou pendente:**
 -
@@ -66,7 +76,7 @@ Preparação do ambiente.
 -
 
 **Uso de assistentes de IA:**
--
+- Sim, para criar as funções usadas.
 
 ---
 
