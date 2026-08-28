@@ -81,7 +81,22 @@ def load_json(path: Path) -> list[Document]:
 
         data = json.load(file)
 
-    records = get_records(data)
+    # products.json possui planos e produtos
+    if path.name == "products.json":
+
+        plans = [
+            {
+                "product_id": f"PLAN-{name}",
+                "name": f"Plano {name}",
+                **plan,
+            }
+            for name, plan in data["pricing_plans"].items()
+        ]
+
+        records = plans + data["products"]
+
+    else:
+        records = get_records(data)
 
     documents = []
 

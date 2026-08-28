@@ -1,24 +1,23 @@
 from collections import Counter
-from pathlib import Path
 
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
+
+from src.ingest import INDEX_DIR, get_embeddings
 
 
-ROOT = Path(__file__).resolve().parents[1]
-INDEX_DIR = ROOT / "index"
-
-MODEL_NAME = (
-    "sentence-transformers/"
-    "paraphrase-multilingual-MiniLM-L12-v2"
-)
+QUESTIONS = [
+    "Quais ações foram aprovadas sobre retenção de clientes?",
+    "Qual foi a causa da queda do serviço de pagamento?",
+    "Quais informações existem sobre segurança e LGPD?",
+]
 
 
-def get_embeddings():
-    return HuggingFaceEmbeddings(
-        model_name=MODEL_NAME,
-        model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True},
+def load_index():
+    """Carrega o FAISS já salvo."""
+    return FAISS.load_local(
+        str(INDEX_DIR),
+        get_embeddings(),
+        allow_dangerous_deserialization=True,
     )
 
 
@@ -27,94 +26,45 @@ def main():
     print("SANITY CHECK - ETAPA 1")
     print("=" * 70)
 
-    if not INDEX_DIR.exists():
-        raise RuntimeError(
-            "Índice não encontrado. Execute primeiro: python -m src.ingest"
-        )
+    print("\nCarregando índice salvo...")
 
-    print("\nRecarregando FAISS SEM reindexar...")
+    db = load_index()
 
-    embeddings = get_embeddings()
-
-    db = FAISS.load_local(
-        str(INDEX_DIR),
-        embeddings,
-        allow_dangerous_deserialization=True,
-    )
-
+    # Documentos já armazenados no FAISS
     documents = list(
         db.docstore._dict.values()
     )
 
-    print(
-        f"\nTOTAL DE CHUNKS: {len(documents)}"
-    )
+    print(f"\nTotal de chunks: {len(documents)}")
 
     distribution = Counter(
         doc.metadata["doc_type"]
         for doc in documents
     )
 
-    print("\nDISTRIBUIÇÃO POR DOC_TYPE:")
+    print("\nDistribuição por doc_type:")
 
     for doc_type, total in sorted(
         distribution.items()
     ):
-        print(
-            f"{doc_type}: {total}"
-        )
+        print(f"{doc_type}: {total}")
 
-    questions = [
-        "Como funciona o reembolso de despesas?",
-        "Quais problemas de estoque aparecem nos tickets?",
-        "Quais erros relacionados ao PDV aparecem nos logs?",
-    ]
+    # 3 perguntas, 5 resultados cada
+    for question in QUESTIONS:
 
-    for question in questions:
         print("\n" + "=" * 70)
         print(f"PERGUNTA: {question}")
-        print("=" * 70)
 
         results = db.similarity_search(
             question,
             k=5,
         )
 
-        for position, doc in enumerate(
-            results,
-            start=1,
-        ):
-            print(
-                f"\nRESULTADO {position}"
-            )
+        for i, doc in enumerate(results, start=1):
 
-            print(
-                "Arquivo:",
-                doc.metadata.get("source_file"),
-            )
-
-            print(
-                "Tipo:",
-                doc.metadata.get("doc_type"),
-            )
-
-            print(
-                "Sensibilidade:",
-                doc.metadata.get("sensitivity"),
-            )
-
-            print(
-                "Chunk:",
-                doc.metadata.get("chunk_id"),
-            )
-
-            print(
-                "\nTexto:"
-            )
-
-            print(
-                doc.page_content[:500]
-            )
+            print(f"\n{i}. {doc.metadata['source_file']}")
+            print(f"Chunk: {doc.metadata['chunk_id']}")
+            print(doc.page_content[:250])
 
 
 if __name__ == "__main__":

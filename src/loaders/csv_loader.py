@@ -25,8 +25,8 @@ CSV_CONFIG = {
     },
 
     "sales.csv": {
-        "doc_type": "sale",
-        "id_field": None,
+        "doc_type": "log",
+        "id_field": "sale_id",
         "prefix": "Venda",
     },
 

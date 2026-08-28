@@ -18,6 +18,7 @@ MODEL_NAME = (
 
 
 def get_embeddings():
+    """Carrega o modelo de embeddings."""
     return HuggingFaceEmbeddings(
         model_name=MODEL_NAME,
         model_kwargs={
@@ -36,37 +37,31 @@ def main():
 
     print("\n1. Carregando documentos...")
 
-    documents, counts = load_all_documents()
+    documents, _ = load_all_documents()
 
     print("\n2. Validando documentos...")
 
     validate_documents(documents)
 
-    print(
-        f"\nTotal: {len(documents)} chunks"
-    )
+    print(f"\nTotal: {len(documents)} chunks")
 
     distribution = Counter(
         doc.metadata["doc_type"]
         for doc in documents
     )
 
-    print("\nDistribuição:")
+    print("\nDistribuição por doc_type:")
 
     for doc_type, total in sorted(
         distribution.items()
     ):
-        print(
-            f"{doc_type}: {total}"
-        )
+        print(f"{doc_type}: {total}")
 
     print("\n3. Carregando modelo de embeddings...")
 
     embeddings = get_embeddings()
 
-    print(
-        "\n4. Criando índice FAISS..."
-    )
+    print("\n4. Criando índice FAISS...")
 
     vector_store = FAISS.from_documents(
         documents,
@@ -78,17 +73,13 @@ def main():
         exist_ok=True,
     )
 
-    print(
-        "\n5. Salvando índice..."
-    )
+    print("\n5. Salvando índice...")
 
     vector_store.save_local(
         str(INDEX_DIR)
     )
 
-    print(
-        f"\nÍndice salvo em: {INDEX_DIR}"
-    )
+    print(f"\nÍndice salvo em: {INDEX_DIR}")
 
     print("\nETAPA DE INGESTÃO CONCLUÍDA.")
 
