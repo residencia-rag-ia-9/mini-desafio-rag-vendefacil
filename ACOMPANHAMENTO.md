@@ -80,18 +80,30 @@ Em todos os 3 testes feitos, as 5 respostas foram corretas.
 
 ---
 
-## Encontro 2 - AAAA-MM-DD
+## Encontro 2 - 2026-08-28
 
 **Etapa:** 2 - Busca híbrida e filtragem por metadados
 
 ### Relato individual - [Nome do Integrante 1]
 
-### Relato individual - [Nome do Integrante 2]
+### Relato individual - Silvio Lima
+
+Tive alguns problemas com a versão das libs, resolveu quando usei o requirements gerado na etapa1.
+Fiz a implementacao da busca por FAISS e BM25.
+A partir das respostas de cada um foi aplicado o RRF.
+Achei bem interessante a lógica de busca hibrida, não conhecia esse algoritmo.
+A função analyze_query, não tinha a informação de source e inclui pois indicar a origem de uma resposta, aumenta a confiabilidade e rastreabilidade.
+Fiz os testes com 3 perguntas enviadas para cada buscador, antes identifiquei os metadados extraidos e seus valores. 
+Os valores que apareciam na query foram usados como filtros nos buscadores.
+As respostas de cada buscador foram combinadas. Quando um documento esta presente em ambos, apenas um é considerado e o resultado enviado ao RRF.
+
+
 
 ### Resumo do dia (escrito em conjunto)
 
 **Entregamos hoje:**
--
+- Etapa 2 finalizada.
+- notebook gerado com os codigos e testes realizados.
 
 **Ficou pendente:**
 -
