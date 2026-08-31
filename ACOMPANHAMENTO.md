@@ -245,23 +245,30 @@ As respostas de cada buscador foram combinadas. Quando um documento esta present
 
 ---
 
-## Encontro 3 - AAAA-MM-DD
+## Encontro 3 - 2026-08-31
 
 **Etapa:** 3 - Síntese estruturada, evidência e guardrails de LGPD
 
 ### Relato individual - [Nome do Integrante 1]
 
-### Relato individual - [Nome do Integrante 2]
+### Relato individual - Silvio Lima
 
-### Resumo do dia (escrito em conjunto)
+Comecei a etapa3, buscas por salario e email nao retornavam a informação desejada.
+Nas pesquisas e testes feitos, identificou-se que a busca nao encontrava os termos salario e email na query, eles vem de arquivos csv, que tem nome em ingles.
+Os arquivos employees e customers esta em conflito com o idioma português. 
+Fiz um teste de incluir a busca em cvs quando na query estiver presente os termos salario, email, pagamento, etc....
+Com isso a busca nos chunks deu certo e apareceram as informações.
+Vou ajustar isso na ingestão de dados.
 
 **Entregamos hoje:**
+- notebook etapa3 sendo desenvolvido.
 
 -
 
 **Ficou pendente:**
 
--
+- etapa3 tem a parte de proteger informação sensivel.
+- sera feito.
 
 **Bloqueios em aberto:**
 
@@ -273,7 +280,8 @@ As respostas de cada buscador foram combinadas. Quando um documento esta present
 
 **Uso de assistentes de IA:**
 
--
+- Esse trabalho é feito com uso de IA.
+- O entendimento é priorizado sempre.
 
 ---
 
