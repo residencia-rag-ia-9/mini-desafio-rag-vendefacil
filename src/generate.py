@@ -3,7 +3,7 @@ from functools import lru_cache
 from typing import Literal
 
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from rank_bm25 import BM25Okapi
 
 from config import OPENAI_API_KEY, OPENAI_MODEL
@@ -17,21 +17,60 @@ from src.schema import RAGResponse, SourceEvidence
 
 
 # Dados que devem ser recusados
-REFUSE = (
-    "salario",
-    "remuneracao",
+SENSITIVE_TERMS = (
     "cpf",
     "dados bancarios",
+    "conta bancaria",
     "chave pix",
     "senha",
+    "password",
     "token",
     "credencial",
+    "chave de api",
+    "api key",
     "dados de saude",
+    "diagnostico",
+    "prontuario",
+    "doenca",
+)
+
+# Consultas de salário individual
+SALARY_TERMS = (
+    "salario atual",
+    "salario individual",
+    "salario de",
+    "salario do",
+    "salario da",
+    "salarios de",
+    "salarios do",
+    "salarios da",
+    "quanto ganha",
+    "lista de salarios",
+    "ordem de remuneracao",
+    "remuneracao individual",
+)
+
+# Dados que devem ser mascarados
+MASK_TERMS = (
+    "email",
+    "e-mail",
+    "telefone",
+    "celular",
+    "endereco",
+    "cartao",
 )
 
 
-# Saída simples que o LLM deve gerar
+class DraftEvidence(BaseModel):
+    """Evidência escolhida pelo LLM."""
+
+    source_id: int
+    quotation: str = Field(max_length=500)
+
+
 class Draft(BaseModel):
+    """Resposta provisória do LLM."""
+
     answer: str
 
     confidence_level: Literal[
@@ -50,29 +89,35 @@ class Draft(BaseModel):
         "sem_evidencia",
     ] | None = None
 
-    source_ids: list[int] = []
+    evidences: list[DraftEvidence] = Field(
+        default_factory=list
+    )
 
 
 @lru_cache
 def search_engine():
-    """Carrega a busca uma única vez."""
+    """Carrega FAISS e BM25 uma única vez."""
+
     db = load_index()
 
-    docs = list(
+    documents = list(
         db.docstore._dict.values()
     )
 
     bm25 = BM25Okapi([
         normalize(doc.page_content).split()
-        for doc in docs
+        for doc in documents
     ])
 
-    return db, docs, bm25, valid_values(docs)
+    valid = valid_values(documents)
+
+    return db, documents, bm25, valid
 
 
 @lru_cache
 def get_llm():
-    """Carrega o LLM com saída estruturada."""
+    """Configura o LLM com saída estruturada."""
+
     if not OPENAI_API_KEY:
         raise ValueError(
             "OPENAI_API_KEY não configurada."
@@ -87,29 +132,61 @@ def get_llm():
 
 
 def refusal(reason, message):
-    """Cria uma recusa válida."""
+    """Gera uma recusa válida."""
+
     return RAGResponse(
         answer=message,
         confidence_level="recusado",
         sources_used=[],
-        reasoning="Pergunta bloqueada pelo guardrail.",
+        reasoning="Pergunta bloqueada ou sem evidência suficiente.",
         is_refusal=True,
         refusal_reason=reason,
     )
 
 
 def lgpd_block(question):
-    """Verifica dados que devem ser recusados."""
+    """Detecta dados que devem ser recusados."""
+
+    text = normalize(question)
+
+    # Dados sensíveis
+    if any(
+        term in text
+        for term in SENSITIVE_TERMS
+    ):
+        return True
+
+    # Média salarial pode ser respondida
+    if (
+        "media salarial" in text
+        or "salario medio" in text
+    ):
+        return False
+
+    # Salário individual deve ser recusado
+    if any(
+        term in text
+        for term in SALARY_TERMS
+    ):
+        return True
+
+    return False
+
+
+def needs_mask(question):
+    """Detecta dados que devem ser mascarados."""
+
     text = normalize(question)
 
     return any(
-        word in text
-        for word in REFUSE
+        term in text
+        for term in MASK_TERMS
     )
 
 
 def mask(text):
     """Ofusca dados pessoais."""
+
     # E-mail
     text = re.sub(
         r"[\w.+-]+@[\w.-]+\.\w+",
@@ -124,7 +201,15 @@ def mask(text):
         text,
     )
 
-    # Número de cartão
+    # Endereço
+    text = re.sub(
+        r"(?i)((?:endereco|address)(?: residencial)?\s*:\s*)"
+        r"[^.\n]+",
+        r"\1[OCULTO]",
+        text,
+    )
+
+    # Cartão
     text = re.sub(
         r"\b(?:\d[ -]*?){13,19}\b",
         "**** **** **** ****",
@@ -135,117 +220,141 @@ def mask(text):
 
 
 def generate(question):
-    """Executa o RAG completo."""
+    """Executa recuperação, guardrails e geração."""
 
-    # LGPD: recusa antes da busca
+    # LGPD: bloqueia antes da busca
     if lgpd_block(question):
         return refusal(
             "lgpd",
             "Não posso fornecer esse dado por motivo de LGPD.",
         )
 
-    db, docs, bm25, valid = search_engine()
+    db, documents, bm25, valid = search_engine()
 
     _, results = hybrid_search(
         db,
         bm25,
-        docs,
+        documents,
         valid,
         question,
         use_filters=True,
     )
 
+    # Aqui realmente não existem evidências
     if not results:
         return refusal(
             "sem_evidencia",
             "Não encontrei evidências para responder.",
         )
 
-    # Mascara caso a pergunta envolva PII
-    mask_data = any(
-        word in normalize(question)
-        for word in (
-            "email",
-            "e-mail",
-            "telefone",
-            "endereco",
-            "cartao",
-        )
-    )
+    mask_data = needs_mask(question)
 
-    context = []
+    context_docs = []
 
-    for i, doc in enumerate(results, 1):
+    for doc in results:
 
-        text = doc.page_content
+        content = doc.page_content
 
         if mask_data:
-            text = mask(text)
+            content = mask(content)
 
-        context.append(
-            f"[{i}] {doc.metadata['source_file']} "
-            f"| {doc.metadata['chunk_id']}\n{text}"
+        context_docs.append(content)
+
+    context = "\n\n".join(
+        (
+            f"[{index}] "
+            f"Arquivo: {doc.metadata['source_file']}\n"
+            f"Chunk: {doc.metadata['chunk_id']}\n"
+            f"Sensibilidade: "
+            f"{doc.metadata.get('sensitivity', 'interno')}\n"
+            f"Conteúdo:\n{context_docs[index - 1]}"
         )
+        for index, doc in enumerate(results, 1)
+    )
 
     prompt = f"""
-Você é o assistente interno da VendeFácil.
+Você é o assistente corporativo da VendeFácil.
 
-Responda SOMENTE com base no contexto abaixo.
+Responda somente usando as fontes fornecidas.
 
-Se a pergunta não tiver relação com a VendeFácil:
-is_refusal=true e refusal_reason=fora_de_escopo.
+REGRAS:
 
-Se a pergunta for da empresa, mas não houver evidência:
-is_refusal=true e refusal_reason=sem_evidencia.
-
-Em source_ids informe os números das fontes
-realmente usadas na resposta.
+- Não use conhecimento externo.
+- Se a pergunta não tiver relação com a VendeFácil,
+  recuse com refusal_reason="fora_de_escopo".
+- Se não houver evidência suficiente,
+  recuse com refusal_reason="sem_evidencia".
+- Uma resposta normal deve possuir evidência.
+- Em cada evidência, source_id deve indicar a fonte usada.
+- quotation deve ser copiada literalmente da fonte indicada.
+- Não invente trechos.
+- Use confidence_level alta, media ou baixa em respostas normais.
+- Use recusado somente quando is_refusal=true.
 
 PERGUNTA:
 {question}
 
-CONTEXTO:
-{chr(10).join(context)}
+FONTES:
+{context}
 """
 
     last_error = None
 
-    # Retry obrigatório
+    # Duas tentativas em caso de falha
     for _ in range(2):
 
         try:
+
             draft = get_llm().invoke(prompt)
 
             if draft.is_refusal:
                 return refusal(
-                    draft.refusal_reason or "sem_evidencia",
+                    draft.refusal_reason
+                    or "sem_evidencia",
                     draft.answer,
                 )
 
-            selected = [
-                results[i - 1]
-                for i in draft.source_ids
-                if 1 <= i <= len(results)
-            ]
-
-            if not selected:
+            if not draft.evidences:
                 raise ValueError(
-                    "LLM não informou uma fonte válida."
+                    "Resposta sem evidência."
                 )
 
             sources = []
 
-            for doc in selected:
+            for evidence in draft.evidences:
 
-                quotation = doc.page_content[:500]
+                if not (
+                    1 <= evidence.source_id <= len(results)
+                ):
+                    raise ValueError(
+                        "ID de fonte inválido."
+                    )
+
+                doc = results[
+                    evidence.source_id - 1
+                ]
+
+                content = doc.page_content
 
                 if mask_data:
-                    quotation = mask(quotation)
+                    content = mask(content)
+
+                quotation = evidence.quotation.strip()
+
+                # O trecho precisa realmente existir
+                if quotation not in content:
+                    raise ValueError(
+                        "Trecho citado não existe na fonte."
+                    )
 
                 sources.append(
                     SourceEvidence(
-                        filepath=doc.metadata["source_file"],
-                        chunk_id=doc.metadata["chunk_id"],
+                        filepath=doc.metadata[
+                            "source_file"
+                        ],
+                        chunk_id=doc.metadata[
+                            "chunk_id"
+                        ],
                         quotation=quotation,
                     )
                 )
@@ -255,11 +364,13 @@ CONTEXTO:
             if confidence == "recusado":
                 confidence = "baixa"
 
-            return RAGResponse(
-                answer=mask(draft.answer)
-                if mask_data
-                else draft.answer,
+            answer = draft.answer
 
+            if mask_data:
+                answer = mask(answer)
+
+            return RAGResponse(
+                answer=answer,
                 confidence_level=confidence,
                 sources_used=sources,
                 reasoning=draft.reasoning,
@@ -270,13 +381,14 @@ CONTEXTO:
         except Exception as error:
             last_error = error
 
-    return refusal(
-        "sem_evidencia",
-        f"Não foi possível validar a resposta: {last_error}",
+    # Erro da API ou falha após as duas tentativas
+    raise RuntimeError(
+        f"Erro ao gerar resposta: {last_error}"
     )
 
 
 def main():
+
     question = input("Pergunta: ")
 
     response = generate(question)

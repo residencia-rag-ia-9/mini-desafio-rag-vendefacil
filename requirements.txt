@@ -6,3 +6,4 @@ langchain-text-splitters
 pypdf
 sentence-transformers
 rank-bm25
+langchain-openai
