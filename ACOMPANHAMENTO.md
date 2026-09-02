@@ -263,7 +263,6 @@ Vou ajustar isso na ingestão de dados.
 **Entregamos hoje:**
 - notebook etapa3 sendo desenvolvido.
 
--
 
 **Ficou pendente:**
 
@@ -284,6 +283,26 @@ Vou ajustar isso na ingestão de dados.
 - O entendimento é priorizado sempre.
 
 ---
+
+## Encontro 4 - 2026-09-02
+
+**Etapa:** 3 - Síntese estruturada, evidência e guardrails de LGPD
+
+### Relato individual - Silvio Lima
+Continuei o desenvolvimento da etapa3.
+Implementei as restrições de out-of-scope, restrições de informação sensivel, mascaramento de telefone e email.
+Gerei testes de envio de queries para confirmar que as restrições foram detectadas e as respostas corretamente geradas.
+
+**Entregamos hoje:**
+- notebook etapa3 gerado e testado.
+
+**Próximo passo (início do encontro 4):**
+
+-
+
+**Uso de assistentes de IA:**
+- Os assistentes foram usados na implementação e entendimento dos módulos.
+- As consultas e respostas fazem parte do notebook.
 
 ## Encontro 4 - AAAA-MM-DD
 
