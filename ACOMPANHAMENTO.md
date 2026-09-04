@@ -304,22 +304,28 @@ Gerei testes de envio de queries para confirmar que as restrições foram detect
 - Os assistentes foram usados na implementação e entendimento dos módulos.
 - As consultas e respostas fazem parte do notebook.
 
-## Encontro 4 - AAAA-MM-DD
+## Encontro 5 - 2026-09-04
 
 **Etapa:** 4 - Avaliação (RAG Triad), interface e relatório
 
 ### Relato individual - [Nome do Integrante 1]
 
-### Relato individual - [Nome do Integrante 2]
+### Relato individual - Silvio Lima
+O pipeline do rag tinha testado com algumas frases.
+Testei com as 24 frases do benchmark e acabei com os tokens do GROQ e OPENROUTER.
+Analisando as saidas, tive que fazer alguns ajustes para relacionar os termos da query com os termos esperados associados a planilhas csv ou jsonl.
+A saida da LLM precisou ser limpa pois vinham caracteres do markdown.
+Nem todas queries foram respondidas pois faltaram evidencias.
+Analisando cada caso, talvez seja necessário fazer ajustes no código.
 
-### Resumo do dia (escrito em conjunto)
 
 **Entregamos hoje:**
-
+notebook etapa 4
+relatorio gerado
 -
 
 **Ficou pendente:**
-
+revisar porque algumas queries nao tiveram resposta por falta de evidencias.
 -
 
 **Bloqueios em aberto:**
